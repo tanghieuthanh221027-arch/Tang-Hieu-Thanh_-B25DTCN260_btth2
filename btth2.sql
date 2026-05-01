@@ -50,12 +50,12 @@ INSERT INTO students (full_name, date_of_birth, gender) VALUES
 ('Student 1', '2000-01-01', 'Male'),
 ('Student 2', '2000-02-02', 'Female'),
 ('Student 3', '2000-03-03', 'Male'),
-('Student 4', '2000-04-04', 'Female'),
+('Student 4', '2005-04-04', 'Female'),
 ('Student 5', '2000-05-05', 'Male'),
-('Student 6', '2000-06-06', 'Female'),
+('Student 6', '2005-06-06', 'Female'),
 ('Student 7', '2000-07-07', 'Male'),
 ('Student 8', '2000-08-08', 'Female'),
-('Student 9', '2000-09-09', 'Male'),
+('Student 9', '2005-09-09', 'Male'),
 ('Student 10', '2000-10-10', 'Female');
 
 INSERT INTO enrollments (student_id, course_id, date, score) VALUES
@@ -82,3 +82,24 @@ WHERE id IN (
     FROM courses
     WHERE course_name LIKE '%IT%'
 );
+
+SELECT c.id AS course_id,c.course_name,t.full_name AS teacher_name
+FROM courses c
+LEFT JOIN teachers t ON c.teacher_id = t.id;
+
+SELECT id,full_name,date_of_birth,gender
+FROM students
+WHERE YEAR(date_of_birth) = 2005;
+
+SELECT s.full_name,s.id,e.score
+FROM enrollments e
+JOIN students s ON e.student_id = s.id
+JOIN courses c ON e.course_id = c.id
+WHERE c.course_name = 'Web Development'
+ORDER BY e.score DESC;
+
+SELECT s.full_name,c.course_name,t.full_name
+FROM enrollments e
+JOIN students s ON e.student_id = s.id
+JOIN courses c ON e.course_id = c.id
+LEFT JOIN teachers t ON c.teacher_id = t.id;
