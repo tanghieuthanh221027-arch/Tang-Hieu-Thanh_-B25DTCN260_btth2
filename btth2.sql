@@ -4,7 +4,7 @@ USE training_management;
 CREATE TABLE teachers (
     id INT PRIMARY KEY AUTO_INCREMENT,
     full_name VARCHAR(100) NOT NULL,
-    salary DECIMAL(10,2) NOT NULL CHECK (salary >= 0)
+    salary DECIMAL(10 , 2 ) NOT NULL CHECK (salary >= 0)
 );
 
 CREATE TABLE courses (
@@ -12,15 +12,16 @@ CREATE TABLE courses (
     course_name VARCHAR(100) NOT NULL,
     teacher_id INT,
     credits INT CHECK (credits > 0),
-    tuition_fee DECIMAL(10,2) CHECK (tuition_fee >= 0),
-    FOREIGN KEY (teacher_id) REFERENCES teachers(id)
+    tuition_fee DECIMAL(10 , 2 ) CHECK (tuition_fee >= 0),
+    FOREIGN KEY (teacher_id)
+        REFERENCES teachers (id)
 );
 
 CREATE TABLE students (
     id INT PRIMARY KEY AUTO_INCREMENT,
     full_name VARCHAR(100) NOT NULL,
     date_of_birth DATE NOT NULL,
-    gender ENUM('Male','Female','Other') NOT NULL
+    gender ENUM('Male', 'Female', 'Other') NOT NULL
 );
 
 CREATE TABLE enrollments (
@@ -28,9 +29,11 @@ CREATE TABLE enrollments (
     student_id INT NOT NULL,
     course_id INT NOT NULL,
     date DATE NOT NULL,
-    score DECIMAL(4,2),
-    FOREIGN KEY (student_id) REFERENCES students(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id)
+    score DECIMAL(4 , 2 ),
+    FOREIGN KEY (student_id)
+        REFERENCES students (id),
+    FOREIGN KEY (course_id)
+        REFERENCES courses (id)
 );
 
 INSERT INTO teachers (full_name, salary) VALUES
@@ -75,31 +78,92 @@ INSERT INTO enrollments (student_id, course_id, date, score) VALUES
 (4,3,'2025-01-14',8.1),
 (5,4,'2025-01-15',6.9);
 
-UPDATE teachers
-SET salary = salary * 1.10
-WHERE id IN (
-    SELECT DISTINCT teacher_id
-    FROM courses
-    WHERE course_name LIKE '%IT%'
-);
+UPDATE teachers 
+SET 
+    salary = salary * 1.10
+WHERE
+    id IN (SELECT DISTINCT
+            teacher_id
+        FROM
+            courses
+        WHERE
+            course_name LIKE '%IT%');
 
-SELECT c.id AS course_id,c.course_name,t.full_name AS teacher_name
-FROM courses c
-LEFT JOIN teachers t ON c.teacher_id = t.id;
+SELECT 
+    c.id AS course_id,
+    c.course_name,
+    t.full_name AS teacher_name
+FROM
+    courses c
+        LEFT JOIN
+    teachers t ON c.teacher_id = t.id;
 
-SELECT id,full_name,date_of_birth,gender
-FROM students
-WHERE YEAR(date_of_birth) = 2005;
+SELECT 
+    id, full_name, date_of_birth, gender
+FROM
+    students
+WHERE
+    YEAR(date_of_birth) = 2005;
 
-SELECT s.full_name,s.id,e.score
-FROM enrollments e
-JOIN students s ON e.student_id = s.id
-JOIN courses c ON e.course_id = c.id
-WHERE c.course_name = 'Web Development'
+SELECT 
+    s.full_name, s.id, e.score
+FROM
+    enrollments e
+        JOIN
+    students s ON e.student_id = s.id
+        JOIN
+    courses c ON e.course_id = c.id
+WHERE
+    c.course_name = 'Web Development'
 ORDER BY e.score DESC;
 
-SELECT s.full_name,c.course_name,t.full_name
-FROM enrollments e
-JOIN students s ON e.student_id = s.id
-JOIN courses c ON e.course_id = c.id
-LEFT JOIN teachers t ON c.teacher_id = t.id;
+SELECT 
+    s.full_name, c.course_name, t.full_name
+FROM
+    enrollments e
+        JOIN
+    students s ON e.student_id = s.id
+        JOIN
+    courses c ON e.course_id = c.id
+        LEFT JOIN
+    teachers t ON c.teacher_id = t.id;
+
+SELECT 
+    t.full_name AS teacher_name, COUNT(c.id) AS total_courses
+FROM
+    teachers t
+        LEFT JOIN
+    courses c ON t.id = c.teacher_id
+GROUP BY t.id , t.full_name;
+
+SELECT 
+    c.id AS course_id,
+    c.course_name,
+    COUNT(e.id) AS total_students,
+    c.tuition_fee,
+    COUNT(e.id) * c.tuition_fee AS total_revenue
+FROM
+    courses c
+        LEFT JOIN
+    enrollments e ON c.id = e.course_id
+GROUP BY c.id , c.course_name , c.tuition_fee;
+
+SELECT 
+    s.full_name, COUNT(e.course_id) AS total_courses
+FROM
+    students s
+        JOIN
+    enrollments e ON s.id = e.student_id
+GROUP BY s.id , s.full_name
+HAVING COUNT(e.course_id) >= 3;
+
+SELECT 
+    c.course_name, AVG(e.score) AS avg_score
+FROM
+    courses c
+        JOIN
+    enrollments e ON c.id = e.course_id
+WHERE
+    e.score IS NOT NULL
+GROUP BY c.id , c.course_name
+HAVING AVG(e.score) < 5.0;
